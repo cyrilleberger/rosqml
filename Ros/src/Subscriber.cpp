@@ -30,12 +30,17 @@ void Subscriber::setQueueSize(int _qS)
 
 void Subscriber::callback(ros::MessageEvent<const topic_tools::ShapeShifter> _message)
 {
-  qDebug() << _message.getMessage()->getDataType().c_str() << _message.getMessage()->getMessageDefinition().c_str() << _message.getReceiptTime ().toSec() << _message.getPublisherName ().c_str();
-  
-  
   MessageDefinition* md = MessageDefinition::get(QString::fromStdString(_message.getMessage()->getDataType()));
+    
+  QByteArray arr;
+  arr.resize(_message.getMessage()->size());
   
-  qDebug() << md;
+  ros::serialization::OStream stream(reinterpret_cast<uint8_t*>(arr.data()), arr.size());
+  _message.getMessage()->write(stream);
+  
+  QVariantMap h = md->parse(arr);
+  m_lastMessage = h;
+  emit(messageReceived(h, _message.getReceiptTime().toNSec(), QString::fromStdString(_message.getPublisherName())));
 }
 
 void Subscriber::subscribe()

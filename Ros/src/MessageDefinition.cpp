@@ -99,3 +99,14 @@ MessageDefinition* MessageDefinition::get(const QString& _type_name)
   }
   return md;
 }
+
+QVariantMap MessageDefinition::parse(const QByteArray& _buffer) const
+{
+  return QVariantMap();
+}
+
+QByteArray MessageDefinition::generate(const QVariantMap& _hash) const
+{
+  return QByteArray();
+}
+

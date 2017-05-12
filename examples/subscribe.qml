@@ -5,6 +5,12 @@ Text
 {
   Subscriber
   {
+    id: sub
     topicName: "/string"
+    onMessageReceived:
+    {
+      console.log("Received ", message, " at ", timestamp, " from ", publisher)
+    }
   }
+  text: sub.lastMessage.data
 }
