@@ -9,6 +9,19 @@
 
 #include <std_msgs/String.h>
 
+namespace {
+  template<typename _T_>
+  inline QVariant to_variant(const _T_& _v)
+  {
+    return QVariant::fromValue(_v);
+  }
+  template<>
+  inline QVariant to_variant<std::string>(const std::string& _v)
+  {
+    return QVariant::fromValue(QString::fromStdString(_v));
+  }
+}
+
 class AbstractMessageField
 {
 public:
@@ -16,6 +29,7 @@ public:
   {
   }
   QString name() const { return m_name; }
+  virtual QVariant parse(ros::serialization::IStream& _stream) const = 0;
 private:
   QString m_name;
 };
@@ -27,6 +41,13 @@ public:
   MessageField(const QString _name) : AbstractMessageField(_name)
   {
   }
+  virtual QVariant parse(ros::serialization::IStream& _stream) const
+  {
+    _T_ v;
+    _stream.next(v);
+    return to_variant<_T_>(v);
+  }
+
 };
 
 class MessageMessageField : public AbstractMessageField
@@ -34,6 +55,10 @@ class MessageMessageField : public AbstractMessageField
 public:
   MessageMessageField(const QString _name, MessageDefinition* _md) : AbstractMessageField(_name), m_md(_md)
   {
+  }
+  virtual QVariant parse(ros::serialization::IStream& _stream) const
+  {
+    return m_md->parse(_stream);
   }
 private:
   MessageDefinition* m_md;
@@ -100,9 +125,24 @@ MessageDefinition* MessageDefinition::get(const QString& _type_name)
   return md;
 }
 
+
+
 QVariantMap MessageDefinition::parse(const QByteArray& _buffer) const
 {
-  return QVariantMap();
+  ros::serialization::IStream stream(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(_buffer.data())), _buffer.size());
+  return parse(stream);
+}
+
+QVariantMap MessageDefinition::parse(ros::serialization::IStream& _stream) const
+{
+  QVariantMap r;
+
+  for(AbstractMessageField* field : m_fields)
+  {
+    r[field->name()] = field->parse(_stream);
+  }
+  
+  return r;
 }
 
 QByteArray MessageDefinition::generate(const QVariantMap& _hash) const

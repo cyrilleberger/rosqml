@@ -31,7 +31,7 @@ void Subscriber::setQueueSize(int _qS)
 void Subscriber::callback(ros::MessageEvent<const topic_tools::ShapeShifter> _message)
 {
   MessageDefinition* md = MessageDefinition::get(QString::fromStdString(_message.getMessage()->getDataType()));
-    
+  
   QByteArray arr;
   arr.resize(_message.getMessage()->size());
   

@@ -3,6 +3,8 @@ import Ros 1.0
 
 Text
 {
+  width: 150
+  height: 50
   Subscriber
   {
     id: sub
