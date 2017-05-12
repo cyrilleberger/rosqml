@@ -1,0 +1,2 @@
+module Ros
+plugin rosqmlplugin
