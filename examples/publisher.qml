@@ -11,6 +11,6 @@ TextEdit
     topicName: "/string"
     dataType: "std_msgs/String"
   }
-  onTextChanged: sub.publish(text)
+  onTextChanged: sub.publish({'data': text})
 }
 

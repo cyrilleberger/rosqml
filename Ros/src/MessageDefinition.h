@@ -8,6 +8,7 @@ namespace ros
   {
     class IStream;
     class OStream;
+    class LStream;
   }
 }
 
@@ -26,6 +27,8 @@ public:
   QVariantMap parse(ros::serialization::IStream& _stream) const;
   QByteArray generate(const QVariantMap& _hash) const;
   void generate(const QVariantMap& _hash, ros::serialization::OStream& _stream) const;
+  quint32 serializedLength(const QVariantMap& _map) const;
+  void serializedLength(const QVariantMap& _map, ros::serialization::LStream& _stream) const;
 private:
   QString m_type_name;
   bool m_valid = false;
