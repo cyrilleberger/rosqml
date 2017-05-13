@@ -9,6 +9,8 @@
 #include <ros/package.h>
 #include <ros/serialization.h>
 
+#include "MessageMessageField.h"
+
 namespace {
   template<typename _T_>
   inline QVariant to_variant(const _T_& _v)
@@ -32,25 +34,11 @@ namespace {
   }
 }
 
-class AbstractMessageField
-{
-public:
-  AbstractMessageField(const QString& _name) : m_name(_name)
-  {
-  }
-  QString name() const { return m_name; }
-  virtual QVariant parse(ros::serialization::IStream& _stream) const = 0;
-  virtual void generate(ros::serialization::OStream& _stream, const QVariant& _variant) const = 0;
-  virtual void serializedLength(ros::serialization::LStream& _stream, const QVariant& _variant) const = 0;
-private:
-  QString m_name;
-};
-
 template<typename _T_>
-class MessageField : public AbstractMessageField
+class BaseTypeMessageField : public MessageField
 {
 public:
-  MessageField(const QString _name) : AbstractMessageField(_name)
+  BaseTypeMessageField(const QString _name, Type _type) : MessageField(_name, _type)
   {
   }
   QVariant parse(ros::serialization::IStream& _stream) const override
@@ -67,28 +55,6 @@ public:
   {
     _stream.next(from_variant<_T_>(_variant));
   }
-};
-
-class MessageMessageField : public AbstractMessageField
-{
-public:
-  MessageMessageField(const QString _name, MessageDefinition* _md) : AbstractMessageField(_name), m_md(_md)
-  {
-  }
-  QVariant parse(ros::serialization::IStream& _stream) const override
-  {
-    return m_md->parse(_stream);
-  }
-  void generate(ros::serialization::OStream & _stream, const QVariant & _variant) const override
-  {
-    m_md->generate(_variant.toMap(), _stream);
-  }
-  void serializedLength(ros::serialization::LStream& _stream, const QVariant & _variant) const override
-  {
-    m_md->serializedLength(_variant.toMap(), _stream);
-  }
-private:
-  MessageDefinition* m_md;
 };
 
 MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_type_name)
@@ -116,7 +82,7 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
 //         QString
         if(type == "string")
         {
-          m_fields.append(new MessageField<std::string>(name));
+          m_fields.append(new BaseTypeMessageField<std::string>(name, MessageField::Type::String));
         } else {
           MessageDefinition* md = MessageDefinition::get(type);
           if(md->isValid())
@@ -177,7 +143,7 @@ QVariantMap MessageDefinition::parse(ros::serialization::IStream& _stream) const
 {
   QVariantMap r;
 
-  for(AbstractMessageField* field : m_fields)
+  for(MessageField* field : m_fields)
   {
     r[field->name()] = field->parse(_stream);
   }
@@ -200,7 +166,7 @@ QByteArray MessageDefinition::generate(const QVariantMap& _hash) const
 
 void MessageDefinition::generate(const QVariantMap& _hash, ros::serialization::OStream& _stream) const
 {
-  for(AbstractMessageField* field : m_fields)
+  for(MessageField* field : m_fields)
   {
     field->generate(_stream, _hash[field->name()]);
   }
@@ -215,10 +181,13 @@ quint32 MessageDefinition::serializedLength(const QVariantMap& _map) const
 
 void MessageDefinition::serializedLength(const QVariantMap& _map, ros::serialization::LStream& _stream) const
 {
-  for(AbstractMessageField* field : m_fields)
+  for(MessageField* field : m_fields)
   {
     field->serializedLength(_stream, _map[field->name()]);
   }
 }
 
-
+QList<QObject*> MessageDefinition::fieldsLO() const
+{
+  return *reinterpret_cast<const QList<QObject*>*>(&m_fields);
+}

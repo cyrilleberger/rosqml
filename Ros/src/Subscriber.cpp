@@ -31,6 +31,11 @@ void Subscriber::setQueueSize(int _qS)
 void Subscriber::callback(ros::MessageEvent<const topic_tools::ShapeShifter> _message)
 {
   MessageDefinition* md = MessageDefinition::get(QString::fromStdString(_message.getMessage()->getDataType()));
+  if(md != m_message_definition)
+  {
+    m_message_definition = md;
+    emit(messageDefinitionChanged());
+  }
   
   QByteArray arr;
   arr.resize(_message.getMessage()->size());
@@ -51,8 +56,6 @@ void Subscriber::subscribe()
   } else {
     m_subscriber = m_handle.subscribe<topic_tools::ShapeShifter>(m_topic_name.toStdString().c_str(), m_queue_size,
                                                                 boost::bind(&Subscriber::callback, this, _1));
-//     m_subscriber = m_handle.subscribe(m_topic_name.toStdString().c_str(), m_queue_size,
-//                                                                 &Subscriber::callback, this);
   }
 }
 

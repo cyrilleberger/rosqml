@@ -50,6 +50,7 @@ void Publisher::start_publisher()
     m_publisher = ros::Publisher();
   } else {
     m_message_definition = MessageDefinition::get(m_data_type);
+    emit(messageDefinitionChanged());
     ros::AdvertiseOptions ao(m_topic_name.toStdString(), m_queue_size, m_message_definition->md5().toHex().toStdString(), m_data_type.toStdString(), m_message_definition->definition().toStdString());
     m_publisher = m_handle.advertise(ao);
   }

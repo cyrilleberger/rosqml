@@ -9,6 +9,8 @@ QT += qml quick
 
 SOURCES += \
     src/MessageDefinition.cpp \
+    src/MessageField.cpp \
+    src/MessageMessageField.cpp \
     src/Subscriber.cpp \
     src/Publisher.cpp \
     src/RosObject.cpp \
@@ -17,6 +19,8 @@ SOURCES += \
 
 HEADERS += \
     src/MessageDefinition.h \
+    src/MessageField.h \
+    src/MessageMessageField.h \
     src/Subscriber.h \
     src/Publisher.h \
     src/RosThread.h \

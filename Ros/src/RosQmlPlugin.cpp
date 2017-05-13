@@ -2,13 +2,14 @@
 
 #include <QtQml>
 
+#include "MessageDefinition.h"
 #include "Publisher.h"
 #include "RosThread.h"
 #include "Subscriber.h"
 
 RosQmlPlugin::RosQmlPlugin()
 {
-
+  qRegisterMetaType<MessageDefinition*>("MessageDefinition*");
 }
 
 void RosQmlPlugin::registerTypes(const char *uri)

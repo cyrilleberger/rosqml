@@ -1,6 +1,6 @@
 #include <QObject>
 
-class AbstractMessageField;
+class MessageField;
 
 namespace ros
 {
@@ -15,6 +15,7 @@ namespace ros
 class MessageDefinition : public QObject
 {
   Q_OBJECT
+  Q_PROPERTY(QList<QObject*> fields READ fieldsLO CONSTANT)
 public:
   MessageDefinition(const QString& _type_name);
   ~MessageDefinition();
@@ -30,9 +31,11 @@ public:
   quint32 serializedLength(const QVariantMap& _map) const;
   void serializedLength(const QVariantMap& _map, ros::serialization::LStream& _stream) const;
 private:
+  QList<QObject*> fieldsLO() const;
+private:
   QString m_type_name;
   bool m_valid = false;
-  QList<AbstractMessageField*> m_fields;
+  QList<MessageField*> m_fields;
   QByteArray m_md5;
   QString m_definition;
 };
