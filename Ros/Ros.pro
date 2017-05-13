@@ -28,7 +28,7 @@ HEADERS += \
 
 OTHER_FILES += qmldir
 
-qmldir.files = qmldir
+qmldir.files = qmldir qml/MessageView.qml
 
 unix {
     installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)

@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import Ros 1.0
 
-Text
+MessageView
 {
   width: 150
   height: 50
@@ -14,5 +14,6 @@ Text
       console.log("Received ", message, " at ", timestamp, " from ", publisher)
     }
   }
-  text: sub.lastMessage.data
+  message: sub.lastMessage
+  messageDefinition: sub.messageDefinition
 }
