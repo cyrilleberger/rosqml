@@ -15,8 +15,8 @@ class Subscriber : public RosObject
 public:
   Subscriber(QObject* _parent = nullptr);
   ~Subscriber();
-  QString topicName() const { return m_topic_name; }
   QVariant lastMessage() const { return m_lastMessage; }
+  QString topicName() const { return m_topic_name; }
   void setTopicName(const QString& _topicName);
   int queueSize() const { return m_queue_size; }
   void setQueueSize(int _qS);

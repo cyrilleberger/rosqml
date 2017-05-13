@@ -1,13 +1,12 @@
 #include "MessageDefinition.h"
 
+#include <QCryptographicHash>
 #include <QDebug>
 #include <QFile>
 #include <QHash>
 #include <QTextStream>
 
 #include <ros/package.h>
-
-#include <std_msgs/String.h>
 
 namespace {
   template<typename _T_>
@@ -64,10 +63,11 @@ private:
   MessageDefinition* m_md;
 };
 
-MessageDefinition::MessageDefinition(const QString& _type_name)
+MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_type_name)
 {
-  QStringList splited = _type_name.split('/');
-  
+  QStringList splited = m_type_name.split('/');
+  QString subdefinition;
+  QString md5text; // see https://github.com/ros/genmsg/blob/indigo-devel/src/genmsg/gentools.py for computation of md5
   QFile file(QString::fromStdString(ros::package::getPath(splited[0].toStdString()).c_str()) + "/msg/" + splited[1] + ".msg");
   if(file.open(QIODevice::ReadOnly))
   {
@@ -76,37 +76,45 @@ MessageDefinition::MessageDefinition(const QString& _type_name)
     while(not stream.atEnd())
     {
       QString line = stream.readLine();
+      m_definition += line;
       int comment_char = line.indexOf('#');
       QStringRef ref = (comment_char >= 0) ? line.leftRef(comment_char) : QStringRef(&line);
       QVector<QStringRef>  l = ref.split(' ', QString::SkipEmptyParts);
-      if(l.size() >= 2)
+      if(l.size() == 2)
       {
-        QStringRef type = l[0];
+        QString type = l[0].toString();
+        QString md5type = type;
         QString name = l[1].toString();
 //         QString
         if(type == "string")
         {
           m_fields.append(new MessageField<std::string>(name));
         } else {
-          MessageDefinition* md = MessageDefinition::get(type.toString());
+          MessageDefinition* md = MessageDefinition::get(type);
           if(md->isValid())
           {
             m_fields.append(new MessageMessageField(name, md));
+            md5type = QString::fromUtf8(md->md5());
+            subdefinition += "================================================================================\n\
+MSG: " + md->typeName() + "\n" + md->definition();
           } else {
             qWarning() << "Unsupported field type: " << type << name;
             m_valid = false;
           }
         }
-      } else if(l.size() == 1) {
+        md5text += "string " + name + "\n";
+      } else if(l.size() != 0) {
         qWarning() << "Invalid line: " << line;
         m_valid = false;
       }
     }
-    qDebug() << file.readAll();
   } else {
     qWarning() << "Failed to open: " << file.fileName();
   }
-  
+  m_definition += subdefinition;
+  md5text.chop(1);
+  m_md5 = QCryptographicHash::hash(md5text.toUtf8(), QCryptographicHash::Md5);
+  qDebug() << "Hash for " << m_type_name << " is " << m_md5.toHex() << " text " << md5text;
 }
 
 MessageDefinition::~MessageDefinition()
@@ -121,6 +129,10 @@ MessageDefinition* MessageDefinition::get(const QString& _type_name)
   {
     md = new MessageDefinition(_type_name);
     definitions[_type_name] = md;
+    if(_type_name == "Header")
+    {
+      definitions["Header"] = md;
+    }
   }
   return md;
 }
@@ -147,6 +159,8 @@ QVariantMap MessageDefinition::parse(ros::serialization::IStream& _stream) const
 
 QByteArray MessageDefinition::generate(const QVariantMap& _hash) const
 {
+  
+  
   return QByteArray();
 }
 
