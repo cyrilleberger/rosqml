@@ -31,7 +31,13 @@ OTHER_FILES += qmldir
 qmldir.files = qmldir qml/MessageView.qml
 
 unix {
-    installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
+    isEmpty(PREFIX) {
+      installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
+    }
+    else {
+      installPath = $$PREFIX/lib/qt5/qml/$$uri
+    }
+
     qmldir.path = $$installPath
     target.path = $$installPath
     INSTALLS += target qmldir
