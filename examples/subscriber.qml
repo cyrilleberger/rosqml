@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import Ros 1.0
+import Ros.Controls 1.0
 
 MessageView
 {

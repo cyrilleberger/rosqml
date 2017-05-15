@@ -1,3 +1,2 @@
 module Ros
 plugin rosqmlplugin
-MessageView 1.0 MessageView.qml
