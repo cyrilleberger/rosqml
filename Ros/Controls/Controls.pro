@@ -4,7 +4,7 @@ uri      = Ros/Controls
 
 OTHER_FILES += qmldir
 
-qmldir.files = qmldir MessageView.qml Event.qml
+qmldir.files = qmldir MessageView.qml Event.qml EventLogger.qml
 
 unix {
     isEmpty(PREFIX) {

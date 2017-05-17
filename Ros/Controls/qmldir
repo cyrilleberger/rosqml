@@ -1,2 +1,3 @@
 MessageView 1.0 MessageView.qml
-Event 1.0 Event.qml
+Event       1.0 Event.qml
+EventLogger 1.0 EventLogger.qml
