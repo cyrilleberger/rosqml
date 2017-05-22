@@ -5,8 +5,6 @@ Rectangle
 {
   id: root
   color: "#aaa"
-  anchors.right: root.right
-  anchors.verticalCenter: root.verticalCenter
   property real __stick_size: 0.25 * Math.min(width, height)
   property real __stick_center_x: width * 0.5
   property real __stick_center_y: height * 0.5
@@ -30,7 +28,7 @@ Rectangle
     property variant stickPoint: { 'x':  -2.0 * stick.x / (parent.width-stick.width) + 1.0, 'y': -2.0 * stick.y / (parent.height-stick.height) + 1.0 }
     onStickPointChanged:
     {
-      pub.publish({'linear': {'x': stickPoint.y * maxLinearVelocity }, 'angular': {'z': -stickPoint.x * maxAngularVelocity} })
+      pub.publish({'linear': {'x': stickPoint.y * maxLinearVelocity }, 'angular': {'z': stickPoint.x * maxAngularVelocity} })
     }
   }
   MouseArea
