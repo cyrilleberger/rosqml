@@ -94,6 +94,9 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
         if(type == "string")
         {
           m_fields.append(new BaseTypeMessageField<std::string>(name, MessageField::Type::String));
+        } else if(type == "float32")
+        {
+          m_fields.append(new BaseTypeMessageField<float>(name, MessageField::Type::Float32));
         } else if(type == "float64")
         {
           m_fields.append(new BaseTypeMessageField<double>(name, MessageField::Type::Float64));
