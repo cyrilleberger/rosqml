@@ -59,10 +59,22 @@ public:
 
 MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_type_name)
 {
+  if(m_type_name == "Header")
+  {
+    m_type_name = "std_msgs/Header";
+  }
+
   QStringList splited = m_type_name.split('/');
+  if(splited.size() != 2)
+  {
+    qWarning() << "Invalid type: " << _type_name;
+    return;
+  }
   QString subdefinition;
   QString md5text; // see https://github.com/ros/genmsg/blob/indigo-devel/src/genmsg/gentools.py for computation of md5
-  QFile file(QString::fromStdString(ros::package::getPath(splited[0].toStdString()).c_str()) + "/msg/" + splited[1] + ".msg");
+  const QString packagename = splited[0];
+  const QString messagename = splited[1];
+  QFile file(QString::fromStdString(ros::package::getPath(packagename.toStdString()).c_str()) + "/msg/" + messagename + ".msg");
   if(file.open(QIODevice::ReadOnly))
   {
     m_valid = true;
@@ -79,16 +91,22 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
         QString type = l[0].toString();
         QString md5type = type;
         QString name = l[1].toString();
-//         QString
         if(type == "string")
         {
           m_fields.append(new BaseTypeMessageField<std::string>(name, MessageField::Type::String));
-        } else {
+        } else if(type == "float64")
+        {
+          m_fields.append(new BaseTypeMessageField<double>(name, MessageField::Type::Float64));
+        }  else {
+          if(not type.contains("/"))
+          {
+            type = packagename + "/" + type;
+          }
           MessageDefinition* md = MessageDefinition::get(type);
           if(md->isValid())
           {
             m_fields.append(new MessageMessageField(name, md));
-            md5type = QString::fromUtf8(md->md5());
+            md5type = QString::fromUtf8(md->md5().toHex());
             subdefinition += "================================================================================\n\
 MSG: " + md->typeName() + "\n" + md->definition();
           } else {
@@ -96,7 +114,7 @@ MSG: " + md->typeName() + "\n" + md->definition();
             m_valid = false;
           }
         }
-        md5text += "string " + name + "\n";
+        md5text += md5type + " " + name + "\n";
       } else if(l.size() != 0) {
         qWarning() << "Invalid line: " << line;
         m_valid = false;

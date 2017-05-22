@@ -2,3 +2,4 @@ MessageView 1.0 MessageView.qml
 Event       1.0 Event.qml
 Events      1.0 Events.qml
 EventsLogger 1.0 EventsLogger.qml
+Joystick    1.0 Joystick.qml

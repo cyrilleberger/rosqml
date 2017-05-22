@@ -4,7 +4,7 @@ uri      = Ros/Controls
 
 OTHER_FILES += qmldir
 
-qmldir.files = qmldir MessageView.qml Event.qml Events.qml EventsLogger.qml
+qmldir.files = qmldir MessageView.qml Event.qml Events.qml EventsLogger.qml Joystick.qml
 
 unix {
     isEmpty(PREFIX) {
@@ -18,3 +18,4 @@ unix {
     target.path = $$installPath
     INSTALLS += target qmldir
 }
+
