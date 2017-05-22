@@ -21,4 +21,5 @@ void RosQmlPlugin::registerTypes(const char *uri)
 void RosQmlPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
   RosThread::instance()->start();
+  engine->rootContext()->setContextProperty("ROS_START_TIME", RosThread::instance()->now());
 }

@@ -28,7 +28,7 @@ HEADERS += \
 
 OTHER_FILES += qmldir
 
-qmldir.files = qmldir qml/MessageView.qml
+qmldir.files = qmldir qml/Time.js
 
 unix {
     isEmpty(PREFIX) {

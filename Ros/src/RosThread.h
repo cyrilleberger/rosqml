@@ -8,6 +8,7 @@ class RosThread : public QThread
   RosThread();
 public:
   static RosThread* instance();
+  quint64 now();
 protected:
   void run();
 };

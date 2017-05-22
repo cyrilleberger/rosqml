@@ -4,6 +4,7 @@ Column
 {
   id: root
   property var topicNames: []
+  property bool relativeTime: true
   Repeater
   {
     model: root.topicNames
@@ -15,6 +16,7 @@ Column
       }
       Event
       {
+        relativeTime: root.relativeTime
         topicName: modelData
       }
     }

@@ -1,2 +1,3 @@
 module Ros
 plugin rosqmlplugin
+Time 1.0 Time.js

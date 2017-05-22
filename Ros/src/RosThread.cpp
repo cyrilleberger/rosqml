@@ -28,6 +28,7 @@ RosThread* RosThread::instance()
       }
     }
     ros::init(map, "rosqml", ros::init_options::AnonymousName);
+    ros::start();
     rt = new RosThread();
   }
   return rt;
@@ -37,3 +38,9 @@ void RosThread::run()
 {
   ros::spin();
 }
+
+quint64 RosThread::now()
+{
+  return ros::Time::now().toNSec();
+}
+
