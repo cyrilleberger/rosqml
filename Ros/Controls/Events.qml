@@ -8,17 +8,10 @@ Column
   Repeater
   {
     model: root.topicNames
-    Row
+    Event
     {
-      Text
-      {
-        text: modelData + ": "
-      }
-      Event
-      {
-        relativeTime: root.relativeTime
-        topicName: modelData
-      }
+      relativeTime: root.relativeTime
+      topicName: modelData
     }
   }
 }

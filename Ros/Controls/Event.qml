@@ -26,13 +26,13 @@ Row {
     topicName: root.topicName
     dataType: "std_msgs/Empty"
   }
+  Button
+  {
+    text: "Send " + topicName
+    onClicked: pub.publish({})
+  }
   Text {
     id: text
     text: "Not yet received"
-  }
-  Button
-  {
-    text: "Send"
-    onClicked: pub.publish({})
   }
 }
