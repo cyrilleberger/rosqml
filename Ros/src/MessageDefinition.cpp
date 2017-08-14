@@ -100,6 +100,12 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
         } else if(type == "float64")
         {
           m_fields.append(new BaseTypeMessageField<double>(name, MessageField::Type::Float64));
+        } else if(type == "uint32")
+        {
+          m_fields.append(new BaseTypeMessageField<quint32>(name, MessageField::Type::UInt32));
+        } else if(type == "int32")
+        {
+          m_fields.append(new BaseTypeMessageField<qint32>(name, MessageField::Type::Int32));
         }  else {
           if(not type.contains("/"))
           {
