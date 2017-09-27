@@ -8,6 +8,7 @@
 
 #include <ros/package.h>
 #include <ros/serialization.h>
+#include <ros/time.h>
 
 #include "MessageMessageField.h"
 
@@ -22,6 +23,14 @@ namespace {
   {
     return QVariant::fromValue(QString::fromStdString(_v));
   }
+  template<>
+  inline QVariant to_variant<ros::Time>(const ros::Time& _v)
+  {
+    QVariantMap map;
+    map["sec"] = _v.sec;
+    map["nsec"] = _v.nsec;
+    return map;
+  }
   template<typename _T_>
   inline _T_ from_variant(const QVariant& _v)
   {
@@ -31,6 +40,12 @@ namespace {
   inline std::string from_variant<std::string>(const QVariant& _v)
   {
     return _v.value<QString>().toStdString();
+  }
+  template<>
+  inline ros::Time from_variant<ros::Time>(const QVariant& _v)
+  {
+    QVariantMap v = _v.toMap();
+    return ros::Time(v["sec"].toInt(), v["nsec"].toInt());
   }
 }
 
@@ -59,6 +74,7 @@ public:
 
 MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_type_name)
 {
+  qDebug() << "MessageDefinition for " << m_type_name;
   if(m_type_name == "Header")
   {
     m_type_name = "std_msgs/Header";
@@ -106,12 +122,20 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
         } else if(type == "int32")
         {
           m_fields.append(new BaseTypeMessageField<qint32>(name, MessageField::Type::Int32));
-        }  else {
+        }  else if(type == "time")
+        {
+          m_fields.append(new BaseTypeMessageField<ros::Time>(name, MessageField::Type::Time));
+        } else {
+          if(type == "Header")
+          {
+            type = "std_msgs/Header";
+          }
           if(not type.contains("/"))
           {
             type = packagename + "/" + type;
           }
           MessageDefinition* md = MessageDefinition::get(type);
+          qDebug() << md << type << md->isValid();
           if(md->isValid())
           {
             m_fields.append(new MessageMessageField(name, md));
@@ -151,6 +175,9 @@ MessageDefinition* MessageDefinition::get(const QString& _type_name)
     md = new MessageDefinition(_type_name);
     definitions[_type_name] = md;
     if(_type_name == "Header")
+    {
+      definitions["std_msgs/Header"] = md;
+    } else if(_type_name == "std_msgs/Header")
     {
       definitions["Header"] = md;
     }
