@@ -87,7 +87,7 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
     return;
   }
   QString subdefinition;
-  QString md5text; // see https://github.com/ros/genmsg/blob/indigo-devel/src/genmsg/gentools.py for computation of md5
+  QString md5text, md5constants; // see https://github.com/ros/genmsg/blob/indigo-devel/src/genmsg/gentools.py for computation of md5
   const QString packagename = splited[0];
   const QString messagename = splited[1];
   QFile file(QString::fromStdString(ros::package::getPath(packagename.toStdString()).c_str()) + "/msg/" + messagename + ".msg");
@@ -116,6 +116,18 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
         } else if(type == "float64")
         {
           m_fields.append(new BaseTypeMessageField<double>(name, MessageField::Type::Float64));
+        } else if(type == "uint8")
+        {
+          m_fields.append(new BaseTypeMessageField<quint8>(name, MessageField::Type::UInt8));
+        } else if(type == "int8")
+        {
+          m_fields.append(new BaseTypeMessageField<qint8>(name, MessageField::Type::Int8));
+        } else if(type == "uint16")
+        {
+          m_fields.append(new BaseTypeMessageField<quint16>(name, MessageField::Type::UInt16));
+        } else if(type == "int16")
+        {
+          m_fields.append(new BaseTypeMessageField<qint16>(name, MessageField::Type::Int16));
         } else if(type == "uint32")
         {
           m_fields.append(new BaseTypeMessageField<quint32>(name, MessageField::Type::UInt32));
@@ -148,6 +160,14 @@ MSG: " + md->typeName() + "\n" + md->definition();
           }
         }
         md5text += md5type + " " + name + "\n";
+      } else if(l.size() == 4) {
+        if(l[2] == "=")
+        {
+          md5constants += l[0].toString() + " " + l[1].toString() + " = " + l[3].toString() + "\n";
+        } else {
+          qWarning() << "Invalid line: " << line;
+          m_valid = false;
+        }
       } else if(l.size() != 0) {
         qWarning() << "Invalid line: " << line;
         m_valid = false;
@@ -158,7 +178,7 @@ MSG: " + md->typeName() + "\n" + md->definition();
   }
   m_definition += subdefinition;
   md5text.chop(1);
-  m_md5 = QCryptographicHash::hash(md5text.toUtf8(), QCryptographicHash::Md5);
+  m_md5 = QCryptographicHash::hash((md5constants + md5text).toUtf8(), QCryptographicHash::Md5);
   qDebug() << "Hash for " << m_type_name << " is " << m_md5.toHex() << " text " << md5text;
 }
 
