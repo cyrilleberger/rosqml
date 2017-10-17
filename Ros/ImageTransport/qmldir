@@ -1,0 +1,3 @@
+module ImageTransport
+plugin rosimagetransportqmlplugin
+
