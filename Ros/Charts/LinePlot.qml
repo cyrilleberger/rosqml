@@ -10,6 +10,7 @@ ChartView
   
   property bool relativeTime: true
   property alias topics: instantiator.model
+  property bool inSeconds: true
   
   ValueAxis {
     id: axisY
@@ -28,7 +29,7 @@ ChartView
     {
       var topicInfo = root.topics[topicIndex]
       
-      var s = root.createSeries(ChartView.SeriesTypeLine, topicInfo.topicName, axisX, axisY)
+      var s = root.createSeries(ChartView.SeriesTypeLine, topicInfo.topicName + "." + topicInfo.field, axisX, axisY)
       if(topicInfo.color)
       {
         s.color = topicInfo.color
@@ -52,6 +53,10 @@ ChartView
         {
           x = x - Ros.startTime
         }
+        if(root.inSeconds)
+        {
+          x = x * 1e-9
+        }
         var y = message
         for(var i in __field_split)
         {
@@ -74,7 +79,7 @@ ChartView
             axisY.min = Math.min(axisY.min, y)
             axisY.max = Math.max(axisY.max, y)
           }
-          root.series(modelData.topicName).append(x, y)
+          root.series(modelData.topicName + "." + modelData.field).append(x, y)
         }
         else if(__first_nan)
         {
