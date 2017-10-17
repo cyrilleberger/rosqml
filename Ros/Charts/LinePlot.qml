@@ -7,7 +7,6 @@ import QtCharts 2.1
 ChartView
 {
   id: root
-  anchors.fill: parent
   
   property bool relativeTime: true
   property alias topics: instantiator.model
@@ -34,6 +33,7 @@ ChartView
       {
         s.color = topicInfo.color
       }
+      s.useOpenGL = true
     }
   }
   
@@ -44,6 +44,7 @@ ChartView
     {
       topicName: modelData.topicName
       property variant __field_split: modelData.field.split(".")
+      property bool __first_nan: true
       onMessageReceived:
       {
         var x = timestamp
@@ -52,26 +53,34 @@ ChartView
           x = x - Ros.startTime
         }
         var y = message
-        
         for(var i in __field_split)
         {
           y = y[__field_split[i]]
         }
-        
-        if(__first)
+        if(!isNaN(x) && !isNaN(y))
         {
-          axisX.min = x
-          axisX.max = x
-          axisY.min = y
-          axisY.max = y
-          __first = false
-        } else {
-          axisX.min = Math.min(axisX.min, x)
-          axisX.max = Math.max(axisX.max, x)
-          axisY.min = Math.min(axisY.min, y)
-          axisY.max = Math.max(axisY.max, y)
+          __first_nan = true
+          
+          if(__first)
+          {
+            axisX.min = x
+            axisX.max = x
+            axisY.min = y
+            axisY.max = y
+            __first = false
+          } else {
+            axisX.min = Math.min(axisX.min, x)
+            axisX.max = Math.max(axisX.max, x)
+            axisY.min = Math.min(axisY.min, y)
+            axisY.max = Math.max(axisY.max, y)
+          }
+          root.series(modelData.topicName).append(x, y)
         }
-        root.series(modelData.topicName).append(x, y)
+        else if(__first_nan)
+        {
+          console.log("Warning: got NaN on topic ", modelData.topicName, " field ", modelData.field)
+          __first_nan = false
+        }
       }
     }
   }

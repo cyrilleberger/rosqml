@@ -12,6 +12,7 @@ Window {
   
   LinePlot
   {
+    anchors.fill: parent
     topics: [ { topicName: "/data", field: Ros.getParam("~field") } ]
   }
 }
