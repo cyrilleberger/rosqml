@@ -21,16 +21,18 @@ public:
   };
   Q_ENUM(Type)
 public:
-  MessageField(const QString& _name, Type _type) : m_name(_name), m_type(_type)
+  MessageField(const QString& _name, Type _type, int _count) : m_name(_name), m_type(_type), m_count(_count)
   {
   }
   QString name() const { return m_name; }
   Type type() const { return m_type; }
+  int count() const { return m_count; }
   virtual QVariant parse(ros::serialization::IStream& _stream) const = 0;
   virtual void generate(ros::serialization::OStream& _stream, const QVariant& _variant) const = 0;
   virtual void serializedLength(ros::serialization::LStream& _stream, const QVariant& _variant) const = 0;
 private:
   QString m_name;
   Type m_type;
+  int m_count;
 };
 

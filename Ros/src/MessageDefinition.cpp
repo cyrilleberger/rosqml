@@ -52,23 +52,74 @@ namespace {
 template<typename _T_>
 class BaseTypeMessageField : public MessageField
 {
+  static QString suffix(int _count)
+  {
+    if(_count == 1)
+    {
+      return QString();
+    } else {
+      return QString("[%1]").arg(_count);
+    }
+  }
 public:
-  BaseTypeMessageField(const QString _name, Type _type) : MessageField(_name, _type)
+  BaseTypeMessageField(const QString _name, Type _type, int _count) : MessageField(_name + suffix(_count), _type, _count)
   {
   }
   QVariant parse(ros::serialization::IStream& _stream) const override
   {
-    _T_ v;
-    _stream.next(v);
-    return to_variant<_T_>(v);
+    if(count() == 1)
+    {
+      _T_ v;
+      _stream.next(v);
+      return to_variant<_T_>(v);
+    } else {
+      QVariantList l;
+      for(int i = 0; i < count(); ++i)
+      {
+        _T_ v;
+        _stream.next(v);
+        l.append(to_variant<_T_>(v));
+      }
+      return l;
+    }
   }
   void generate(ros::serialization::OStream & _stream, const QVariant & _variant) const override
   {
-    _stream.next(from_variant<_T_>(_variant));
+    if(count() == 1)
+    {
+      _stream.next(from_variant<_T_>(_variant));
+    } else {
+      QVariantList l = _variant.toList();
+      int i = 0;
+      for(; i < std::min(l.size(), count()); ++i)
+      {
+        _stream.next(from_variant<_T_>(l[i]));
+      }
+      for(; i < count(); ++i)
+      {
+        _T_ v;
+        _stream.next(v);
+      }
+    }
   }
   void serializedLength(ros::serialization::LStream& _stream, const QVariant & _variant) const override
   {
-    _stream.next(from_variant<_T_>(_variant));
+    if(count() == 1)
+    {
+      _stream.next(from_variant<_T_>(_variant));
+    } else {
+      QVariantList l = _variant.toList();
+      int i = 0;
+      for(; i < std::min(l.size(), count()); ++i)
+      {
+        _stream.next(from_variant<_T_>(l[i]));
+      }
+      for(; i < count(); ++i)
+      {
+        _T_ v;
+        _stream.next(v);
+      }
+    }
   }
 };
 
@@ -107,40 +158,57 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
         QString type = l[0].toString();
         QString md5type = type;
         QString name = l[1].toString();
-        if(type == "string")
+        int count = 1;
+        if(type.endsWith("[]"))
         {
-          m_fields.append(new BaseTypeMessageField<std::string>(name, MessageField::Type::String));
-        } else if(type == "float32")
+          qFatal("unimplemented");
+        }
+        QString baseType;
+        if(type.endsWith(']'))
         {
-          m_fields.append(new BaseTypeMessageField<float>(name, MessageField::Type::Float32));
-        } else if(type == "float64")
-        {
-          m_fields.append(new BaseTypeMessageField<double>(name, MessageField::Type::Float64));
-        } else if(type == "uint8")
-        {
-          m_fields.append(new BaseTypeMessageField<quint8>(name, MessageField::Type::UInt8));
-        } else if(type == "int8")
-        {
-          m_fields.append(new BaseTypeMessageField<qint8>(name, MessageField::Type::Int8));
-        } else if(type == "uint16")
-        {
-          m_fields.append(new BaseTypeMessageField<quint16>(name, MessageField::Type::UInt16));
-        } else if(type == "int16")
-        {
-          m_fields.append(new BaseTypeMessageField<qint16>(name, MessageField::Type::Int16));
-        } else if(type == "uint32")
-        {
-          m_fields.append(new BaseTypeMessageField<quint32>(name, MessageField::Type::UInt32));
-        } else if(type == "int32")
-        {
-          m_fields.append(new BaseTypeMessageField<qint32>(name, MessageField::Type::Int32));
-        }  else if(type == "time")
-        {
-          m_fields.append(new BaseTypeMessageField<ros::Time>(name, MessageField::Type::Time));
+          QRegExp r("(.*)\\[(.*)\\]");
+          r.exactMatch(type);
+          baseType = r.cap(1);
+          count    = r.cap(2).toInt();
+          qDebug() << baseType << count;
         } else {
-          if(type == "Header")
+          baseType = type;
+        }
+        if(baseType == "string")
+        {
+          m_fields.append(new BaseTypeMessageField<std::string>(name, MessageField::Type::String, count));
+        } else if(baseType == "float32")
+        {
+          m_fields.append(new BaseTypeMessageField<float>(name, MessageField::Type::Float32, count));
+        } else if(baseType == "float64")
+        {
+          m_fields.append(new BaseTypeMessageField<double>(name, MessageField::Type::Float64, count));
+        } else if(baseType == "uint8")
+        {
+          m_fields.append(new BaseTypeMessageField<quint8>(name, MessageField::Type::UInt8, count));
+        } else if(baseType == "int8")
+        {
+          m_fields.append(new BaseTypeMessageField<qint8>(name, MessageField::Type::Int8, count));
+        } else if(baseType == "uint16")
+        {
+          m_fields.append(new BaseTypeMessageField<quint16>(name, MessageField::Type::UInt16, count));
+        } else if(baseType == "int16")
+        {
+          m_fields.append(new BaseTypeMessageField<qint16>(name, MessageField::Type::Int16, count));
+        } else if(baseType == "uint32")
+        {
+          m_fields.append(new BaseTypeMessageField<quint32>(name, MessageField::Type::UInt32, count));
+        } else if(baseType == "int32")
+        {
+          m_fields.append(new BaseTypeMessageField<qint32>(name, MessageField::Type::Int32, count));
+        }  else if(baseType == "time")
+        {
+          m_fields.append(new BaseTypeMessageField<ros::Time>(name, MessageField::Type::Time, count));
+        } else {
+          if(baseType == "Header")
           {
-            type = "std_msgs/Header";
+            baseType = "std_msgs/Header";
+            type = "std_msgs/" + type;
           }
           if(not type.contains("/"))
           {
@@ -150,7 +218,7 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
           qDebug() << md << type << md->isValid();
           if(md->isValid())
           {
-            m_fields.append(new MessageMessageField(name, md));
+            m_fields.append(new MessageMessageField(name, md, count));
             md5type = QString::fromUtf8(md->md5().toHex());
             subdefinition += "================================================================================\n\
 MSG: " + md->typeName() + "\n" + md->definition();

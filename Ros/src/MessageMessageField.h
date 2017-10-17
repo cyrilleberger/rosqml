@@ -6,7 +6,7 @@ class MessageMessageField : public MessageField
 {
   Q_PROPERTY(MessageDefinition* messageDefinition READ messageDefinition CONSTANT)
 public:
-  MessageMessageField(const QString _name, MessageDefinition* _md) : MessageField(_name, Type::Message), m_md(_md)
+  MessageMessageField(const QString _name, MessageDefinition* _md, int _count) : MessageField(_name, Type::Message, _count), m_md(_md)
   {
   }
   ~MessageMessageField();
