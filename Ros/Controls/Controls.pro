@@ -1,6 +1,6 @@
 TEMPLATE=lib
 
-uri      = Ros/Controls
+uri      = Ros.Controls
 
 OTHER_FILES += qmldir
 
@@ -11,7 +11,7 @@ unix {
       installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
     }
     else {
-      installPath = $$PREFIX/lib/qt5/qml/$$uri
+      installPath = $$PREFIX/lib/qt5/qml/$$replace(uri, \\., /)
     }
 
     qmldir.path = $$installPath

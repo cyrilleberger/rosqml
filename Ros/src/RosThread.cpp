@@ -36,11 +36,11 @@ RosThread* RosThread::instance()
 
 void RosThread::run()
 {
+  m_startTime = now();
   ros::spin();
 }
 
-quint64 RosThread::now()
+quint64 RosThread::now() const
 {
   return ros::Time::now().toNSec();
 }
-

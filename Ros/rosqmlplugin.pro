@@ -15,7 +15,8 @@ SOURCES += \
     src/Publisher.cpp \
     src/RosObject.cpp \
     src/RosThread.cpp \
-    src/RosQmlPlugin.cpp
+    src/RosQmlPlugin.cpp \
+    src/RosWrapper.cpp
 
 HEADERS += \
     src/MessageDefinition.h \
@@ -24,7 +25,8 @@ HEADERS += \
     src/Subscriber.h \
     src/Publisher.h \
     src/RosThread.h \
-    src/RosQmlPlugin.h
+    src/RosQmlPlugin.h \
+    src/RosWrapper.h
 
 OTHER_FILES += qmldir
 

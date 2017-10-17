@@ -10,7 +10,7 @@ Row {
   {
     if(relativeTime)
     {
-      return timestamp - ROS_START_TIME
+      return timestamp - Ros.startTime
     } else {
       return timestamp
     }
