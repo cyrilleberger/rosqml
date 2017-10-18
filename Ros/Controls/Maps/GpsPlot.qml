@@ -2,8 +2,8 @@ import Ros 1.0
 import QtQuick 2.2
 import QtQuick.Window 2.0
 import QtCharts 2.1
-import QtLocation 5.6
-import QtPositioning 5.6
+import QtLocation 5.5
+import QtPositioning 5.5
 
 
 Map
