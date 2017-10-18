@@ -6,7 +6,7 @@
 
 #include "MessageDefinition.h"
 
-Subscriber::Subscriber(QObject* _parent) : RosObject(_parent), m_queue_size(1)
+Subscriber::Subscriber(QObject* _parent) : RosObject(_parent), m_queue_size(1), m_skip(0), m_skipCount(0)
 {
 }
 
@@ -30,6 +30,12 @@ void Subscriber::setQueueSize(int _qS)
 
 void Subscriber::callback(ros::MessageEvent<const topic_tools::ShapeShifter> _message)
 {
+  if(m_skipCount < m_skip)
+  {
+    ++m_skipCount;
+    return;
+  }
+  m_skipCount = 0;
   MessageDefinition* md = MessageDefinition::get(QString::fromStdString(_message.getMessage()->getDataType()));
   if(md != m_message_definition)
   {

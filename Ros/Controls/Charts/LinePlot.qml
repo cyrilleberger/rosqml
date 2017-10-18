@@ -49,6 +49,7 @@ ChartView
     delegate: Subscriber
     {
       topicName: modelData.topicName
+      skip: modelData.skip ? modelData.skip : 0
       property variant __field_split: modelData.field.split(".")
       property bool __first_nan: true
       onMessageReceived:
