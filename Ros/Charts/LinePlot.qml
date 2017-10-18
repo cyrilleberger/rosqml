@@ -11,6 +11,8 @@ ChartView
   property bool relativeTime: true
   property alias topics: instantiator.model
   property bool inSeconds: true
+  property int maximumPoints: -1
+  property variant __counts: {}
   
   ValueAxis {
     id: axisY
@@ -25,17 +27,20 @@ ChartView
   {
     removeAllSeries()
     root.__first = true
+    var counts = {}
     for(var topicIndex in root.topics)
     {
       var topicInfo = root.topics[topicIndex]
-      
-      var s = root.createSeries(ChartView.SeriesTypeLine, topicInfo.topicName + "." + topicInfo.field, axisX, axisY)
+      var s_name = topicInfo.topicName + "." + topicInfo.field
+      var s = root.createSeries(ChartView.SeriesTypeLine, s_name, axisX, axisY)
+      counts[s_name] = 0
       if(topicInfo.color)
       {
         s.color = topicInfo.color
       }
       s.useOpenGL = true
     }
+    root.__counts = counts
   }
   
   Instantiator
@@ -79,7 +84,23 @@ ChartView
             axisY.min = Math.min(axisY.min, y)
             axisY.max = Math.max(axisY.max, y)
           }
-          root.series(modelData.topicName + "." + modelData.field).append(x, y)
+          var s_name = modelData.topicName + "." + modelData.field
+          var s = root.series(s_name)
+          s.append(x, y)
+          var counts = root.__counts
+          counts[s_name] += 1
+          if(root.maximumPoints > 0 && counts[s_name] > root.maximumPoints)
+          {
+            counts[s_name] -= 1
+            s.remove(0)
+            var minX = axisX.max
+            for(var i = 0; i < root.count; ++i)
+            {
+              minX = Math.min(root.series(i).at(0).x, minX)
+            }
+            axisX.min = minX
+          }
+          root.__counts = counts
         }
         else if(__first_nan)
         {
