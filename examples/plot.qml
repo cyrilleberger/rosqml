@@ -3,7 +3,7 @@
 import Ros 1.0
 import QtQuick 2.0
 import QtQuick.Window 2.0
-import Ros.Charts 1.0
+import Ros.Controls.Charts 1.0
   
 Window {
   width: 512

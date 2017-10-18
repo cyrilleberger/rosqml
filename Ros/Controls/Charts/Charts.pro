@@ -1,6 +1,6 @@
 TEMPLATE=lib
 
-uri      = Ros.Charts
+uri      = Ros.Controls.Charts
 
 OTHER_FILES += qmldir
 

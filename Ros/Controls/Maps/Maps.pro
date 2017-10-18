@@ -1,6 +1,6 @@
 TEMPLATE=lib
 
-uri      = Ros.Maps
+uri      = Ros.Controls.Maps
 
 OTHER_FILES += qmldir
 
