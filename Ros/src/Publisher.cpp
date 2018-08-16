@@ -60,7 +60,8 @@ void Publisher::publish(const QVariant& _message)
 {
   if(m_message_definition)
   {
-    QByteArray data = m_message_definition->generate(_message.toMap());
+    QVariantMap message = m_message_definition->variantToMap(_message);
+    QByteArray data = m_message_definition->serializeMessage(message);
     ros::serialization::IStream stream(reinterpret_cast<uint8_t*>(data.data()), data.size());
     
     topic_tools::ShapeShifter ss;

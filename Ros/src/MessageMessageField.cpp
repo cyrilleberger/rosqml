@@ -10,35 +10,35 @@ MessageMessageField::~MessageMessageField()
 {
 }
 
-QVariant MessageMessageField::parse(ros::serialization::IStream& _stream) const
+QVariant MessageMessageField::deserialize(ros::serialization::IStream& _stream) const
 {
   if(count() == 1)
   {
-    return m_md->parse(_stream);
+    return m_md->deserializeMessage(_stream);
   } else {
     QVariantList l;
     for(int i = 0; i < count(); ++i)
     {
-      l.append(m_md->parse(_stream));
+      l.append(m_md->deserializeMessage(_stream));
     }
     return l;
   }
 }
-void MessageMessageField::generate(ros::serialization::OStream & _stream, const QVariant & _variant) const
+void MessageMessageField::serialize(ros::serialization::OStream & _stream, const QVariant & _variant) const
 {
   if(count() == 1)
   {
-    m_md->generate(_variant.toMap(), _stream);
+    m_md->serializeMessage(_variant.toMap(), _stream);
   } else {
     QVariantList l = _variant.toList();
     int i = 0;
     for(; i < std::min(l.size(), count()); ++i)
     {
-      m_md->generate(l[i].toMap(), _stream);
+      m_md->serializeMessage(l[i].toMap(), _stream);
     }
     for(; i < count(); ++i)
     {
-      m_md->generate(QVariantMap(), _stream);
+      m_md->serializeMessage(QVariantMap(), _stream);
     }
   }
 }

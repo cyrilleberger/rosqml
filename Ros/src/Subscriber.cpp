@@ -49,7 +49,7 @@ void Subscriber::callback(ros::MessageEvent<const topic_tools::ShapeShifter> _me
   ros::serialization::OStream stream(reinterpret_cast<uint8_t*>(arr.data()), arr.size());
   _message.getMessage()->write(stream);
   
-  QVariantMap h = md->parse(arr);
+  QVariantMap h = md->deserializeMessage(arr);
   m_lastMessage = h;
   emit(messageReceived(h, _message.getReceiptTime().toNSec(), QString::fromStdString(_message.getPublisherName())));
 }

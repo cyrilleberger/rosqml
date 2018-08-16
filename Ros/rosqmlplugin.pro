@@ -2,7 +2,7 @@ TEMPLATE = lib
 TARGET = rosqmlplugin
 uri      = Ros
 
-CONFIG += qt plugin c++11 nostrip link_pkgconfig
+CONFIG += qt plugin c++11 nostrip link_pkgconfig concurrent
 PKGCONFIG += roscpp topic_tools roslib
 
 QT += qml quick
@@ -11,6 +11,8 @@ SOURCES += \
     src/MessageDefinition.cpp \
     src/MessageField.cpp \
     src/MessageMessageField.cpp \
+    src/ServiceClient.cpp \
+    src/ServiceDefinition.cpp \
     src/Subscriber.cpp \
     src/Publisher.cpp \
     src/RosObject.cpp \
@@ -22,6 +24,8 @@ HEADERS += \
     src/MessageDefinition.h \
     src/MessageField.h \
     src/MessageMessageField.h \
+    src/ServiceClient.h \
+    src/ServiceDefinition.h \
     src/Subscriber.h \
     src/Publisher.h \
     src/RosThread.h \
