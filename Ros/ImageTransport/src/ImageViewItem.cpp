@@ -41,6 +41,7 @@ void ImageViewItem::setImage(Image* _image)
 
 QSGNode* ImageViewItem::updatePaintNode(QSGNode* _oldNode, UpdatePaintNodeData* _upnd)
 {
+  Q_UNUSED(_upnd);
   delete m_texture;
   m_texture = window()->createTextureFromImage(m_img);
   QSGSimpleTextureNode* textureNode = new QSGSimpleTextureNode;
