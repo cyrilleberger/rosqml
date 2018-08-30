@@ -3,21 +3,25 @@ TARGET = rosimagetransportqmlplugin
 uri      = Ros.ImageTransport
 
 CONFIG += qt plugin c++11 nostrip link_pkgconfig
-PKGCONFIG += roscpp topic_tools roslib
+PKGCONFIG += roscpp image_transport roslib
 
-QT += qml quick
+QT += qml quick concurrent
 
 SOURCES += \
+    src/RosImageTransportQmlPlugin.cpp \
     src/Subscriber.cpp \
     src/Image.cpp \
-    src/ImageView.cpp
+    src/ImageViewItem.cpp
 
 HEADERS += \
+    src/RosImageTransportQmlPlugin.h \
     src/Subscriber.h \
     src/Image.h \
-    src/ImageView.h
+    src/ImageViewItem.h
 
 OTHER_FILES += qmldir
+
+qmldir.files = qmldir
 
 unix {
     isEmpty(PREFIX) {
