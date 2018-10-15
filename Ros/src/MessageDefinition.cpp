@@ -68,57 +68,104 @@ public:
   }
   QVariant deserialize(ros::serialization::IStream& _stream) const override
   {
-    if(count() == 1)
+    switch(count())
     {
-      _T_ v;
-      _stream.next(v);
-      return to_variant<_T_>(v);
-    } else {
-      QVariantList l;
-      for(int i = 0; i < count(); ++i)
+      case 1:
       {
         _T_ v;
         _stream.next(v);
-        l.append(to_variant<_T_>(v));
+        return to_variant<_T_>(v);
       }
-      return l;
+      case -1:
+      {
+        QVariantList l;
+        qint32 size;
+        _stream.next(size);
+        for(int i = 0; i < size; ++i)
+        {
+          _T_ v;
+          _stream.next(v);
+          l.append(to_variant<_T_>(v));
+        }
+        return l;
+      }
+      default:
+      {
+        QVariantList l;
+        for(int i = 0; i < count(); ++i)
+        {
+          _T_ v;
+          _stream.next(v);
+          l.append(to_variant<_T_>(v));
+        }
+        return l;
+      }
     }
   }
   void serialize(ros::serialization::OStream & _stream, const QVariant & _variant) const override
   {
-    if(count() == 1)
+    switch(count())
     {
-      _stream.next(from_variant<_T_>(_variant));
-    } else {
-      QVariantList l = _variant.toList();
-      int i = 0;
-      for(; i < std::min(l.size(), count()); ++i)
+      case 1:
+        _stream.next(from_variant<_T_>(_variant));
+        break;
+      case -1:
       {
-        _stream.next(from_variant<_T_>(l[i]));
+        QVariantList l = _variant.toList();
+        _stream.next(qint32(l.size()));
+        for(int i = 0 ; i < l.size(); ++i)
+        {
+          _stream.next(from_variant<_T_>(l[i]));
+        }
+        break;
       }
-      for(; i < count(); ++i)
+      default:
       {
-        _T_ v;
-        _stream.next(v);
+        QVariantList l = _variant.toList();
+        int i = 0;
+        for(; i < std::min(l.size(), count()); ++i)
+        {
+          _stream.next(from_variant<_T_>(l[i]));
+        }
+        for(; i < count(); ++i)
+        {
+          _T_ v = _T_();
+          _stream.next(v);
+        }
       }
     }
   }
   void serializedLength(ros::serialization::LStream& _stream, const QVariant & _variant) const override
   {
-    if(count() == 1)
+    switch(count())
     {
-      _stream.next(from_variant<_T_>(_variant));
-    } else {
-      QVariantList l = _variant.toList();
-      int i = 0;
-      for(; i < std::min(l.size(), count()); ++i)
+      case 1:
+        _stream.next(from_variant<_T_>(_variant));
+        break;
+      case -1:
       {
-        _stream.next(from_variant<_T_>(l[i]));
+        _stream.next(4);
+        QVariantList l = _variant.toList();
+        for(int i = 0 ; i < l.size(); ++i)
+        {
+          _stream.next(from_variant<_T_>(l[i]));
+        }
+        break;
       }
-      for(; i < count(); ++i)
+      default:
       {
-        _T_ v;
-        _stream.next(v);
+        QVariantList l = _variant.toList();
+        int i = 0;
+        for(; i < std::min(l.size(), count()); ++i)
+        {
+          _stream.next(from_variant<_T_>(l[i]));
+        }
+        for(; i < count(); ++i)
+        {
+          _T_ v = _T_();
+          _stream.next(v);
+        }
+        break;
       }
     }
   }
@@ -172,18 +219,20 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
       QString md5type = type;
       QString name = l[1].toString();
       int count = 1;
+      QString baseType;
       if(type.endsWith("[]"))
       {
-        qFatal("unimplemented");
-      }
-      QString baseType;
-      if(type.endsWith(']'))
+        QRegExp r("(.*)\\[\\]");
+        r.exactMatch(type);
+        baseType = r.cap(1);
+        count    = -1;
+        qDebug() << "---------------------" << baseType;
+      } else if(type.endsWith(']'))
       {
         QRegExp r("(.*)\\[(.*)\\]");
         r.exactMatch(type);
         baseType = r.cap(1);
         count    = r.cap(2).toInt();
-        qDebug() << baseType << count;
       } else {
         baseType = type;
       }
@@ -229,11 +278,12 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
           baseType = "std_msgs/Header";
           type = "std_msgs/" + type;
         }
-        if(not type.contains("/"))
+        if(not baseType.contains("/"))
         {
           type = _packagename + "/" + type;
+          baseType = _packagename + "/" + baseType;
         }
-        MessageDefinition* md = MessageDefinition::get(type);
+        MessageDefinition* md = MessageDefinition::get(baseType);
         qDebug() << md << type << md->isValid();
         if(md->isValid())
         {

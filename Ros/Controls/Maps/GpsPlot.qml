@@ -14,7 +14,7 @@ Map
   {
     id: mapPlugin
     name: "osm"
-    PluginParameter { name: "osm.useragent"; value: "tst_editor" }
+    PluginParameter { name: "osm.useragent"; value: "rosqml" }
     PluginParameter { name: "osm.mapping.custom.host"; value: "http://c.tile.openstreetmap.org/" }
   }
   Subscriber

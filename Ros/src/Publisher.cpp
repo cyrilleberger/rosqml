@@ -1,5 +1,6 @@
 #include "Publisher.h"
 
+#include <QDebug>
 #include <QVariant>
 
 #include <topic_tools/shape_shifter.h>
