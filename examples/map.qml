@@ -30,7 +30,33 @@ Window {
       topicName: "map/polygon"
       dataType: "geographic_msgs/GeoPath"
     }
-
+    
+    Component
+    {
+      id: received
+      MapPolyline
+      {
+        line.width: 2
+        line.color: "green"
+      }
+    }
+    
+    Subscriber
+    {
+      id: sub
+      topicName: "map/polygon"
+      onMessageReceived:
+      {
+        var p = []
+        message['poses'].forEach(function(pose) {
+          var position = pose['pose']['position']
+          p.push(QtPositioning.coordinate(position['latitude'], position['longitude']))
+        })
+        var item = received.createObject(map, {path: p})
+        map.addMapItem(item)
+      }
+    }
+    
     MouseArea
     {
       anchors.fill: parent
