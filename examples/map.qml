@@ -34,10 +34,10 @@ Window {
     Component
     {
       id: received
-      MapPolyline
+      MapPolygon
       {
-        line.width: 2
-        line.color: "green"
+        border.width: 2
+        border.color: "green"
       }
     }
     
