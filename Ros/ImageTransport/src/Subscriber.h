@@ -35,5 +35,5 @@ private:
   int m_skip, m_skipCount;
   image_transport::ImageTransport m_imageTransport;
   image_transport::Subscriber m_subscriber;
-  Image* m_lastImage;
+  Image* m_lastImage = nullptr;
 };
