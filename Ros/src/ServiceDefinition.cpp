@@ -48,7 +48,7 @@ ServiceDefinition::ServiceDefinition(const QString& _type_name) : m_type_name(_t
     
     m_md5 = hash.result();
 
-    qDebug() << "Hash for " << m_type_name << " is " << m_md5.toHex() << " text: " << m_requestDefinition->m_definition + "\n---\n" + m_answerDefinition->m_definition;
+    qDebug() << "Hash for " << m_type_name << " is " << m_md5.toHex() << " text: " << m_requestDefinition->m_md5_definition + "\n---\n" + m_answerDefinition->m_md5_definition;
     
   } else {
     qWarning() << "Failed to open: " << file.fileName();

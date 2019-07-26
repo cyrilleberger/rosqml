@@ -11,6 +11,7 @@
 #include <ros/serialization.h>
 #include <ros/time.h>
 
+#include "IOFormat.h"
 #include "MessageMessageField.h"
 
 namespace {
@@ -197,9 +198,98 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
     QTextStream stream(&file);
     parseDefinition(packagename, stream);
   } else {
-    qWarning() << "Failed to open: " << file.fileName();
+    qWarning() << IOFormat::red << "Failed to open: " << file.fileName() << IOFormat::reset;
   }
 }
+
+struct LineParser
+{
+  int index = 0;
+  QStringRef line, type, name, value;
+  
+  enum class Type
+  {
+    Invalid,
+    Empty,
+    Field,
+    Constant
+  };
+  Type lineType;
+  
+  bool isSpace() const
+  {
+    return line[index] == ' ' or line[index] == '\t';
+  }
+  bool isComment() const
+  {
+    return line[index] == '#';
+  }
+  bool isEqual() const
+  {
+    return line[index] == '=';
+  }
+  bool atEnd() const
+  {
+    return index >= line.size();
+  }
+  void skipSpace()
+  {
+    while(not atEnd() and isSpace() and not isComment())
+    {
+      ++index;
+    }
+  }
+  QStringRef parseText()
+  {
+    int start = index;
+    while(not atEnd() and not isSpace() and not isComment() and not isEqual())
+    {
+      ++index;
+    }
+    if(index > start)
+    {
+      return QStringRef(line.string(), start, index - start);
+    } else {
+      return QStringRef();
+    }
+  }
+  void parse(const QStringRef& _line)
+  {
+    line = _line;
+    skipSpace();
+    type = parseText();
+    skipSpace();
+    name = parseText();
+    skipSpace();
+    if(not atEnd() and isEqual())
+    {
+      ++index;
+      skipSpace();
+      value = parseText();
+    }
+    skipSpace();
+    
+    if(atEnd() or isComment())
+    {
+      if(not type.isEmpty() and not name.isEmpty())
+      {
+        if(value.isEmpty())
+        {
+          lineType = Type::Field;
+        } else {
+          lineType = Type::Constant;
+        }
+      } else if(type.isEmpty() and name.isEmpty() and value.isEmpty())
+      {
+        lineType = Type::Empty;
+      } else {
+        lineType = Type::Invalid;
+      }
+    } else {
+      lineType = Type::Invalid;
+    }
+  }
+};
 
 void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream& _stream)
 {
@@ -211,110 +301,119 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
     QString line = _stream.readLine();
     m_definition += line;
     int comment_char = line.indexOf('#');
-    QStringRef ref = (comment_char >= 0) ? line.leftRef(comment_char) : QStringRef(&line);
-    QVector<QStringRef>  l = ref.split(' ', QString::SkipEmptyParts);
-    if(l.size() == 2)
+    
+    LineParser lineParser;
+    lineParser.parse(QStringRef(&line));
+
+    switch(lineParser.lineType)
     {
-      QString type = l[0].toString();
-      QString md5type = type;
-      QString name = l[1].toString();
-      int count = 1;
-      QString baseType;
-      if(type.endsWith("[]"))
+      case LineParser::Type::Empty:
+        break;
+      case LineParser::Type::Invalid:
       {
-        QRegExp r("(.*)\\[\\]");
-        r.exactMatch(type);
-        baseType = r.cap(1);
-        count    = -1;
-        qDebug() << "---------------------" << baseType;
-      } else if(type.endsWith(']'))
-      {
-        QRegExp r("(.*)\\[(.*)\\]");
-        r.exactMatch(type);
-        baseType = r.cap(1);
-        count    = r.cap(2).toInt();
-      } else {
-        baseType = type;
-      }
-      if(baseType == "string")
-      {
-        m_fields.append(new BaseTypeMessageField<std::string>(name, MessageField::Type::String, count));
-      } else if(baseType == "float32")
-      {
-        m_fields.append(new BaseTypeMessageField<float>(name, MessageField::Type::Float32, count));
-      } else if(baseType == "float64")
-      {
-        m_fields.append(new BaseTypeMessageField<double>(name, MessageField::Type::Float64, count));
-      } else if(baseType == "uint8")
-      {
-        m_fields.append(new BaseTypeMessageField<quint8>(name, MessageField::Type::UInt8, count));
-      } else if(baseType == "int8")
-      {
-        m_fields.append(new BaseTypeMessageField<qint8>(name, MessageField::Type::Int8, count));
-      } else if(baseType == "uint16")
-      {
-        m_fields.append(new BaseTypeMessageField<quint16>(name, MessageField::Type::UInt16, count));
-      } else if(baseType == "int16")
-      {
-        m_fields.append(new BaseTypeMessageField<qint16>(name, MessageField::Type::Int16, count));
-      } else if(baseType == "uint32")
-      {
-        m_fields.append(new BaseTypeMessageField<quint32>(name, MessageField::Type::UInt32, count));
-      } else if(baseType == "int32")
-      {
-        m_fields.append(new BaseTypeMessageField<qint32>(name, MessageField::Type::Int32, count));
-      } else if(baseType == "uint64")
-      {
-        m_fields.append(new BaseTypeMessageField<uint64_t>(name, MessageField::Type::UInt64, count));
-      } else if(baseType == "int64")
-      {
-        m_fields.append(new BaseTypeMessageField<int64_t>(name, MessageField::Type::Int64, count));
-      }  else if(baseType == "time")
-      {
-        m_fields.append(new BaseTypeMessageField<ros::Time>(name, MessageField::Type::Time, count));
-      } else {
-        if(baseType == "Header")
-        {
-          baseType = "std_msgs/Header";
-          type = "std_msgs/" + type;
-        }
-        if(not baseType.contains("/"))
-        {
-          type = _packagename + "/" + type;
-          baseType = _packagename + "/" + baseType;
-        }
-        MessageDefinition* md = MessageDefinition::get(baseType);
-        qDebug() << md << type << md->isValid();
-        if(md->isValid())
-        {
-          m_fields.append(new MessageMessageField(name, md, count));
-          md5type = QString::fromUtf8(md->md5().toHex());
-          subdefinition += "================================================================================\n\
-MSG: " + md->typeName() + "\n" + md->definition();
-        } else {
-          qWarning() << "Unsupported field type: " << type << name;
-          m_valid = false;
-        }
-      }
-      md5text += md5type + " " + name + "\n";
-    } else if(l.size() == 4) {
-      if(l[2] == "=")
-      {
-        md5constants += l[0].toString() + " " + l[1].toString() + " = " + l[3].toString() + "\n";
-      } else {
-        qWarning() << "Invalid line: " << line;
+        qWarning() << IOFormat::red << "Invalid line: " << line << IOFormat::reset;
         m_valid = false;
+        break;
       }
-    } else if(l.size() != 0) {
-      qWarning() << "Invalid line: " << line;
-      m_valid = false;
+      case LineParser::Type::Field:
+      {
+        QString type = lineParser.type.toString();
+        QString md5type = type;
+        QString name = lineParser.name.toString();
+        int count = 1;
+        QString baseType;
+        if(type.endsWith("[]"))
+        {
+          QRegExp r("(.*)\\[\\]");
+          r.exactMatch(type);
+          baseType = r.cap(1);
+          count    = -1;
+        } else if(type.endsWith(']'))
+        {
+          QRegExp r("(.*)\\[(.*)\\]");
+          r.exactMatch(type);
+          baseType = r.cap(1);
+          count    = r.cap(2).toInt();
+        } else {
+          baseType = type;
+        }
+        if(baseType == "string")
+        {
+          m_fields.append(new BaseTypeMessageField<std::string>(name, MessageField::Type::String, count));
+        } else if(baseType == "float32")
+        {
+          m_fields.append(new BaseTypeMessageField<float>(name, MessageField::Type::Float32, count));
+        } else if(baseType == "float64")
+        {
+          m_fields.append(new BaseTypeMessageField<double>(name, MessageField::Type::Float64, count));
+        } else if(baseType == "bool")
+        {
+          m_fields.append(new BaseTypeMessageField<bool>(name, MessageField::Type::Bool, count));
+        } else if(baseType == "uint8")
+        {
+          m_fields.append(new BaseTypeMessageField<quint8>(name, MessageField::Type::UInt8, count));
+        } else if(baseType == "int8")
+        {
+          m_fields.append(new BaseTypeMessageField<qint8>(name, MessageField::Type::Int8, count));
+        } else if(baseType == "uint16")
+        {
+          m_fields.append(new BaseTypeMessageField<quint16>(name, MessageField::Type::UInt16, count));
+        } else if(baseType == "int16")
+        {
+          m_fields.append(new BaseTypeMessageField<qint16>(name, MessageField::Type::Int16, count));
+        } else if(baseType == "uint32")
+        {
+          m_fields.append(new BaseTypeMessageField<quint32>(name, MessageField::Type::UInt32, count));
+        } else if(baseType == "int32")
+        {
+          m_fields.append(new BaseTypeMessageField<qint32>(name, MessageField::Type::Int32, count));
+        } else if(baseType == "uint64")
+        {
+          m_fields.append(new BaseTypeMessageField<uint64_t>(name, MessageField::Type::UInt64, count));
+        } else if(baseType == "int64")
+        {
+          m_fields.append(new BaseTypeMessageField<int64_t>(name, MessageField::Type::Int64, count));
+        }  else if(baseType == "time")
+        {
+          m_fields.append(new BaseTypeMessageField<ros::Time>(name, MessageField::Type::Time, count));
+        } else {
+          if(baseType == "Header")
+          {
+            baseType = "std_msgs/Header";
+            type = "std_msgs/" + type;
+          }
+          if(not baseType.contains("/"))
+          {
+            type = _packagename + "/" + type;
+            baseType = _packagename + "/" + baseType;
+          }
+          MessageDefinition* md = MessageDefinition::get(baseType);
+          if(md->isValid())
+          {
+            m_fields.append(new MessageMessageField(name, md, count));
+            md5type = QString::fromUtf8(md->md5().toHex());
+            subdefinition += "================================================================================\n\
+  MSG: " + md->typeName() + "\n" + md->definition();
+          } else {
+            qWarning() << IOFormat::red << "Unsupported field type: " << type << name << IOFormat::reset;
+            m_valid = false;
+          }
+        }
+        md5text += md5type + " " + name + "\n";
+        break;
+      }
+      case LineParser::Type::Constant:
+      {
+        md5constants += lineParser.type + " " + lineParser.name + "=" + lineParser.value + "\n";
+        break;
+      }
     }
   }
   m_definition += subdefinition;
   md5text.chop(1);
   m_md5_definition = md5constants + md5text;
-  m_md5 = QCryptographicHash::hash((md5constants + md5text).toUtf8(), QCryptographicHash::Md5);
-  qDebug() << "Hash for " << m_type_name << " is " << m_md5.toHex() << " text " << md5text;
+  m_md5 = QCryptographicHash::hash((m_md5_definition).toUtf8(), QCryptographicHash::Md5);
+  qDebug() << IOFormat::blue << "Hash for " << m_type_name << " is " << m_md5.toHex() << " text " << m_md5_definition << IOFormat::reset;
 }
 
 MessageDefinition::~MessageDefinition()

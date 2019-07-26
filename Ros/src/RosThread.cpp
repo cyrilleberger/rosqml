@@ -5,6 +5,8 @@
 
 #include <ros/ros.h>
 
+#include "IOFormat.h"
+
 RosThread::RosThread()
 {
 
@@ -16,6 +18,7 @@ RosThread* RosThread::instance()
   if(not rt)
   {
     QString ros_arguments = QProcessEnvironment::systemEnvironment().value("ROS_ARGUMENTS");
+    qDebug().nospace().noquote() << IOFormat::green << "Using ros_arguments: '" << ros_arguments << "'" << IOFormat::reset;
     ros::M_string map;
     for(QString arg : ros_arguments.split(' '))
     {
