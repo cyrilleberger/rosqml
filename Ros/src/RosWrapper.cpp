@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <QVariant>
 
+#include <ros/this_node.h>
+
 #include "RosThread.h"
 
 RosWrapper::RosWrapper(QObject* _parent) : RosObject(_parent)
@@ -17,6 +19,11 @@ RosWrapper::~RosWrapper()
 quint64 RosWrapper::startTime() const
 {
   return RosThread::instance()->startTime();
+}
+
+QString RosWrapper::nameSpace() const
+{
+  return QString::fromStdString(ros::this_node::getNamespace());
 }
 
 quint64 RosWrapper::now() const
