@@ -14,6 +14,7 @@ SOURCES += \
     src/ServiceClient.cpp \
     src/ServiceDefinition.cpp \
     src/Subscriber.cpp \
+    src/Package.cpp \
     src/Publisher.cpp \
     src/RosObject.cpp \
     src/RosThread.cpp \
@@ -27,6 +28,7 @@ HEADERS += \
     src/ServiceClient.h \
     src/ServiceDefinition.h \
     src/Subscriber.h \
+    src/Package.h \
     src/Publisher.h \
     src/RosThread.h \
     src/RosQmlPlugin.h \

@@ -6,9 +6,10 @@
 
 #include <ros/this_node.h>
 
+#include "Package.h"
 #include "RosThread.h"
 
-RosWrapper::RosWrapper(QObject* _parent) : RosObject(_parent)
+RosWrapper::RosWrapper(QObject* _parent) : RosObject(_parent), m_package(new Package(this))
 {
 }
 
@@ -29,6 +30,11 @@ QString RosWrapper::nameSpace() const
 quint64 RosWrapper::now() const
 {
   return RosThread::instance()->now();
+}
+
+Package* RosWrapper::package() const
+{
+  return m_package;
 }
 
 namespace
