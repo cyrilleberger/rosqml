@@ -1,5 +1,6 @@
 #include "RosThread.h"
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QProcessEnvironment>
 
@@ -33,6 +34,9 @@ RosThread* RosThread::instance()
     ros::init(map, "rosqml", ros::init_options::AnonymousName);
     ros::start();
     rt = new RosThread();
+    QObject::connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, [](){
+      ros::shutdown();
+    });
   }
   return rt;
 }
