@@ -14,6 +14,7 @@ protected:
   void run();
 private:
   quint64 m_startTime;
+  bool m_ros_is_started;
 };
 
 #endif // ROSTHREAD_H

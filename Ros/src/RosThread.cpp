@@ -8,7 +8,7 @@
 
 #include "IOFormat.h"
 
-RosThread::RosThread()
+RosThread::RosThread() : m_ros_is_started(false)
 {
 
 }
@@ -32,7 +32,11 @@ RosThread* RosThread::instance()
       }
     }
     ros::init(map, "rosqml", ros::init_options::AnonymousName);
-    ros::start();
+    if(not QProcessEnvironment::systemEnvironment().contains("ROS_DELAY_START"))
+    {
+      ros::start();
+      rt->m_ros_is_started = true;
+    }
     rt = new RosThread();
     QObject::connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, [](){
       ros::shutdown();
@@ -43,6 +47,11 @@ RosThread* RosThread::instance()
 
 void RosThread::run()
 {
+  if(not m_ros_is_started)
+  {
+    ros::start();
+    m_ros_is_started = true;
+  }
   m_startTime = now();
   ros::spin();
 }
