@@ -32,12 +32,12 @@ RosThread* RosThread::instance()
       }
     }
     ros::init(map, "rosqml", ros::init_options::AnonymousName);
+    rt = new RosThread();
     if(not QProcessEnvironment::systemEnvironment().contains("ROS_DELAY_START"))
     {
       ros::start();
       rt->m_ros_is_started = true;
     }
-    rt = new RosThread();
     QObject::connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, [](){
       ros::shutdown();
     });
