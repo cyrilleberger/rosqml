@@ -29,6 +29,13 @@ void ServiceClient::setServiceName(const QString& _serviceName)
   start_client();
 }
 
+void ServiceClient::setWaitForAvailable(bool _v)
+{
+  m_waitForAvailable = _v;
+  emit(waitForAvailableChanged());
+}
+
+
 bool ServiceClient::call(const QVariant& _message)
 {
   if(not m_service_definition)
@@ -47,6 +54,11 @@ bool ServiceClient::call(const QVariant& _message)
   QVariantMap message = m_service_definition->requestDefinition()->variantToMap(_message);
   
   QtConcurrent::run([this, message]() {
+    if(m_waitForAvailable)
+    {
+      m_client.waitForExistence();
+    }
+    
     ros::SerializedMessage answer;
     
     quint32 request_length = m_service_definition->requestDefinition()->serializedLength(message) + 4;
